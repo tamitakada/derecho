@@ -36,6 +36,7 @@ inline ChangeProposal make_change_proposal(uint16_t leader_id, uint16_t change_i
     return ChangeProposal{leader_id, change_id, false};
 }
 
+
 /**
  * ViewManager and MulticastGroup will share the same SST for efficiency. This
  * class defines all the fields in this SST.
@@ -185,6 +186,15 @@ public:
 
     /** to signal a graceful exit */
     SSTField<bool> rip;
+
+    /**
+     * Application field: For TIDE scheduler to multicast the load information.
+     * For each member  each int represents
+     * the loading information(queue length) of the member.
+     */
+    SSTField<uint64_t> load_info;
+    SSTField<uint64_t> cache_models_info; 
+
     /**
      * Constructs an SST, and initializes the GMS fields to "safe" initial values
      * (0, false, etc.). Initializing the MulticastGroup fields is left to MulticastGroup.
@@ -205,7 +215,7 @@ public:
               signed_num(num_subgroups),
               verified_num(num_subgroups),
               suspected(parameters.members.size()),
-              changes(100 + parameters.members.size()),  //The extra 100 entries allows for more joins at startup, when the group is very small
+              changes(100 + parameters.members.size()),  // The extra 100 entries allows for more joins at startup, when the group is very small
               joiner_ips(100 + parameters.members.size()),
               joiner_gms_ports(100 + parameters.members.size()),
               joiner_state_transfer_ports(100 + parameters.members.size()),
@@ -218,15 +228,15 @@ public:
               slots(slot_size),
               num_received_sst(num_received_size),
               index(index_field_size),
-              local_stability_frontier(num_subgroups) {
+              local_stability_frontier(num_subgroups){
         SSTInit(seq_num, delivered_num, signatures,
                 persisted_num, signed_num, verified_num,
                 vid, suspected, changes, joiner_ips,
                 joiner_gms_ports, joiner_state_transfer_ports, joiner_sst_ports, joiner_rdmc_ports, joiner_external_ports,
                 num_changes, num_committed, num_acked, num_installed,
                 num_received, wedged, global_min, global_min_ready,
-                slots, num_received_sst, index, local_stability_frontier, rip);
-        //Once superclass constructor has finished, table entries can be initialized
+                slots, num_received_sst, index, local_stability_frontier, rip, load_info, cache_models_info);
+        // Once superclass constructor has finished, table entries can be initialized
         for(unsigned int row = 0; row < get_num_rows(); ++row) {
             vid[row] = 0;
             for(size_t i = 0; i < suspected.size(); ++i) {
@@ -260,6 +270,8 @@ public:
                 local_stability_frontier[row][i] = current_time_ns;
             }
             rip[row] = false;
+            cache_models_info[row] = 0;
+            load_info[row] = 0;
         }
     }
 

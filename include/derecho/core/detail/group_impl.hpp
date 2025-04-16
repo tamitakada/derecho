@@ -130,6 +130,7 @@ GroupProjection<ReplicatedType>::get_number_of_shards(uint32_t subgroup_index) {
 
 template <typename ReplicatedType>
 uint32_t GroupProjection<ReplicatedType>::get_num_subgroups() {
+    int a = 0;
     return get_view_manager().get_num_subgroups(get_index_of_type(typeid(ReplicatedType)));
 }
 
@@ -478,13 +479,24 @@ template <typename... ReplicatedTypes>
 template <typename SubgroupType>
 uint32_t Group<ReplicatedTypes...>::get_num_subgroups() {
     static_assert(contains<SubgroupType, ReplicatedTypes...>::value, "get_num_subgroups was called with a template parameter that did not match any subgroup type");
-    // No need to ask view_manager. This avoids locking the view_mutex.
+    //No need to ask view_manager. This avoids locking the view_mutex.
+    /**
+     * TODO: submit this as an issue. The original catch clause is not working as intended
+     * Since if the subgroup is not in replicated_objects, it doesn't throw exception, but return 0 instead.
+     * The if/else statement fixed this.
+    */
     try {
-        return replicated_objects.template get<SubgroupType>().size();
+        auto local_num = replicated_objects.template get<SubgroupType>().size();
+        if( local_num != 0){
+            return local_num;
+        }else{
+            return peer_callers.template get<SubgroupType>().size();
+        }
     } catch(std::out_of_range& ex) {
         // The SubgroupType must either be in replicated_objects or peer_callers
         return peer_callers.template get<SubgroupType>().size();
     }
+    
 }
 
 template <typename... ReplicatedTypes>
@@ -535,6 +547,30 @@ void Group<ReplicatedTypes...>::receive_objects(const std::set<std::pair<subgrou
     }
 
     dbg_default_debug("Done receiving all Replicated Objects from subgroup leaders {}", subgroups_and_leaders.empty() ? "(there were none to receive)" : "");
+}
+
+template <typename... ReplicatedTypes>
+void Group<ReplicatedTypes...>::set_my_load_info(uint64_t load) {
+    SharedLockedReference<View> curr_view = view_manager.get_current_view();
+    curr_view.get().multicast_group->set_load_info_entry(load);
+}
+
+template <typename... ReplicatedTypes>
+uint64_t Group<ReplicatedTypes...>::get_load_info(node_id_t node_id) {
+    SharedLockedReference<View> curr_view = view_manager.get_current_view();
+    return curr_view.get().multicast_group->get_load_info(node_id);
+}
+
+template <typename... ReplicatedTypes>
+void Group<ReplicatedTypes...>::set_my_cache_models_info(uint64_t cache_models) {
+    SharedLockedReference<View> curr_view = view_manager.get_current_view();
+    curr_view.get().multicast_group->set_cache_models_info_entry(cache_models);
+}
+
+template <typename... ReplicatedTypes>
+uint64_t Group<ReplicatedTypes...>::get_cache_models_info(node_id_t node_id) {
+    SharedLockedReference<View> curr_view = view_manager.get_current_view();
+    return curr_view.get().multicast_group->get_cache_models_info(node_id);
 }
 
 template <typename... ReplicatedTypes>

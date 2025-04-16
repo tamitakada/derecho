@@ -47,6 +47,8 @@ void DerechoSST::init_local_row_from_previous(const DerechoSST& old_sst, const i
     num_acked[local_row] = old_sst.num_acked[row];
     num_installed[local_row] = old_sst.num_installed[row] + num_changes_installed;
     wedged[local_row] = false;
+    load_info[local_row] =  old_sst.load_info[row];
+    cache_models_info[local_row] = old_sst.cache_models_info[row];
 }
 
 void DerechoSST::init_local_change_proposals(const int other_row) {
@@ -78,6 +80,8 @@ void DerechoSST::init_local_change_proposals(const int other_row) {
     num_committed[local_row] = num_committed[other_row];
     num_acked[local_row] = num_acked[other_row];
     num_installed[local_row] = num_installed[other_row];
+    load_info[local_row] =  load_info[other_row];
+    cache_models_info[local_row] = cache_models_info[other_row];
 }
 
 void DerechoSST::push_row_except_slots() {

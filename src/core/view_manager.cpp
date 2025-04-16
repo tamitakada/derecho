@@ -1718,7 +1718,7 @@ void ViewManager::transition_multicast_group(
     next_view->multicast_group = std::make_unique<MulticastGroup>(
             next_view->members, next_view->members[next_view->my_rank],
             next_view->gmsSST, std::move(*curr_view->multicast_group), num_subgroups,
-            new_subgroup_settings,
+            new_subgroup_settings, 
             next_view->failed);
 
     curr_view->multicast_group.reset();
@@ -1993,6 +1993,7 @@ void ViewManager::make_subgroup_maps(const SubgroupInfo& subgroup_info,
                     subgroup_allocations[subgroup_type][subgroup_index]));
         }  //for(subgroup_index)
     }
+     dbg_default_trace("Finished making subgroup maps");
 }
 
 std::tuple<uint32_t, uint32_t, uint32_t> ViewManager::derive_subgroup_settings(View& view,

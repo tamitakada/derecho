@@ -415,6 +415,11 @@ private:
      * alert it when a new version needs to be persisted. */
     PersistenceManager& persistence_manager;
 
+    pred_handle send_load_info_handle;
+    pred_handle send_cache_models_info_handle;
+    std::atomic<uint64_t> last_send_load_info_timeus;
+    std::atomic<uint64_t> last_send_cache_models_info_timeus;
+
     /** Continuously waits for a new pending send, then sends it. This function
      * implements the sender thread. */
     void send_loop();
@@ -605,5 +610,27 @@ public:
         return subgroup_settings_map;
     }
     std::vector<uint32_t> get_shard_sst_indices(subgroup_id_t subgroup_num) const;
+
+    /** Set the load in SST load_info column for this node's member_index.
+     * this function is used by upper level application TIDE to update the local
+     * load information to disseminate this to all nodes in the group
+     * @param load      the updated load value to set in SST.load_info of this node
+     */
+    void set_load_info_entry(uint64_t load);
+
+    /** Getter of load_info for a specific node
+     * @param node_id   the node, for which to get its load info
+     */
+    uint64_t get_load_info(node_id_t node_id);
+
+    /** Set the local models in cache information in SST cache_modelsfield for this node's member_index.
+     * @param   cache_models     an encoded uint64_t value, where each bit represent if model exists in cache
+     */
+    void set_cache_models_info_entry(uint64_t cache_models);
+
+    /** Getter of cache_models_info for a specific node
+     * @param node_id   the node, for which to get its models in cache info
+     */
+    uint64_t get_cache_models_info(node_id_t node_id);
 };
 }  // namespace derecho

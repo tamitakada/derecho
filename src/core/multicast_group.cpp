@@ -1080,6 +1080,65 @@ void MulticastGroup::register_predicates() {
             }
         }
     }
+    /* Periodically write local load information to all nodes in the group 
+     * This information is used for TIDE application.
+     */
+    auto send_load_info_pred = [this](const DerechoSST& sst) {
+        uint64_t cur_us = std::chrono::duration_cast<std::chrono::microseconds>(
+                                  std::chrono::high_resolution_clock::now().time_since_epoch())
+                                  .count();
+        auto interval = 1000000 / getConfUInt32(CONF_INFO_SST_LOAD_INFO_MULTICAST_RATE);
+        if(cur_us - last_send_load_info_timeus < interval) {
+            return false;
+        }
+        last_send_load_info_timeus = cur_us;
+        return true;
+    };
+    auto update_load_info_sst_trig = [this](DerechoSST& sst) {sst.put(sst.load_info); };
+    if(!send_load_info_handle.is_valid()) {
+        send_load_info_handle = sst->predicates.insert(
+                send_load_info_pred, update_load_info_sst_trig, sst::PredicateType::RECURRENT);
+    }
+
+    auto send_models_cache_info_pred = [this](const DerechoSST& sst) {
+        uint64_t cur_us = std::chrono::duration_cast<std::chrono::microseconds>(
+                                  std::chrono::high_resolution_clock::now().time_since_epoch())
+                                  .count();
+        auto interval = 1000000 / getConfUInt32(CONF_INFO_SST_CACHE_INFO_MULTICAST_RATE);
+        if(cur_us - last_send_cache_models_info_timeus < interval) {
+            return false;
+        }
+        last_send_cache_models_info_timeus = cur_us;
+        return true;
+    };
+    auto update_models_cache_info_sst_trig = [this](DerechoSST& sst) { sst.put(sst.cache_models_info); };
+    if(!send_cache_models_info_handle.is_valid()) {
+        send_cache_models_info_handle = sst->predicates.insert(
+                send_models_cache_info_pred, update_models_cache_info_sst_trig, sst::PredicateType::RECURRENT);
+    }
+    dbg_default_trace("multicast group finished register_prdicates.");
+}
+
+void MulticastGroup::set_load_info_entry(uint64_t load) {
+    // dbg_default_trace("~~~ MulticastGroup::set_load_info_entry");
+    gmssst::set(this->sst.get()->load_info[this->member_index], load);
+}
+
+uint64_t MulticastGroup::get_load_info(node_id_t node_id){
+    // dbg_default_trace("~~~ MulticastGroup::get_load_info of node({})", node_id );
+    uint32_t sst_index = node_id_to_sst_index[node_id];
+    return this->sst.get()->load_info[sst_index];
+}
+
+void MulticastGroup::set_cache_models_info_entry(uint64_t cache_models) {
+    // dbg_default_trace("~~~ MulticastGroup::set_cache_models_info_entry");
+    gmssst::set(this->sst.get()->cache_models_info[this->member_index], cache_models);
+}
+
+uint64_t MulticastGroup::get_cache_models_info(node_id_t node_id){
+    // dbg_default_trace("~~~ MulticastGroup::get_cache_models_info");
+    uint32_t sst_index = node_id_to_sst_index[node_id];
+    return this->sst.get()->cache_models_info[sst_index];
 }
 
 MulticastGroup::~MulticastGroup() {

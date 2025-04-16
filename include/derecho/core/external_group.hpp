@@ -252,6 +252,7 @@ public:
      */
     template <typename SubgroupType>
     std::vector<node_id_t> get_shard_members(uint32_t subgroup_index, uint32_t shard_num) const;
+
     /**
      * Get the index of a type
      * @tparam SubgroupType     The subgroup type
@@ -280,6 +281,13 @@ public:
      */
     template <typename SubgroupType>
     uint32_t get_number_of_shards(uint32_t subgroup_index = 0) const;
+    /**
+     * Get the subgroup info of the current view 
+     * @param node_id   the node_id to get its subgroup info 
+     * @return a tuple<subgroup_type_index, subgroup_index, shard_index> ,
+     *  if not found, then shard_index = -1
+    */
+    std::tuple<subgroup_type_id_t, uint32_t, int32_t> get_node_shard_index(node_id_t node_id) const;
 
     /**
      * Get subgroup members

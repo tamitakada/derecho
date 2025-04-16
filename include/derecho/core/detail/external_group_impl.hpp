@@ -616,6 +616,21 @@ uint32_t ExternalGroupClient<ReplicatedTypes...>::get_number_of_shards(uint32_t 
 }
 
 template <typename... ReplicatedTypes>
+std::tuple<subgroup_type_id_t, uint32_t, int32_t> ExternalGroupClient<ReplicatedTypes...>::get_node_shard_index(node_id_t node_id) const {
+    int32_t node_rank = (int32_t)curr_view->node_id_to_rank.at(node_id);
+    for (auto& subgroup: curr_view->subgroup_ids_by_type_id){
+        for(auto& subgroup_id: subgroup.second){
+            for(size_t shard_index = 0; shard_index < curr_view->subgroup_shard_views.at(subgroup_id).size(); ++shard_index){
+                if(curr_view->subgroup_shard_views.at(subgroup_id).at(shard_index).my_rank == node_rank){
+                    return std::make_tuple(subgroup.first, subgroup_id, shard_index);
+                }
+            }
+        }
+    }
+    return std::make_tuple(0, 0, -1);
+}
+
+template <typename... ReplicatedTypes>
 template <typename SubgroupType>
 std::vector<std::vector<node_id_t>> ExternalGroupClient<ReplicatedTypes...>::get_subgroup_members(uint32_t subgroup_index) const {
     std::vector<std::vector<node_id_t>> ret;

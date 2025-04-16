@@ -1,7 +1,7 @@
 #!/bin/bash
 set -eu
 export TMPDIR=/var/tmp
-INSTALL_PREFIX="/usr/local"
+INSTALL_PREFIX="/home/yy354/opt-dev"
 SCRIPTPATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 if [[ $# -gt 0 ]]; then
     INSTALL_PREFIX=$1

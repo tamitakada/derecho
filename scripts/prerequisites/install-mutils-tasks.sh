@@ -8,18 +8,20 @@ if [[ $# -gt 0 ]]; then
 fi
 
 echo "Using INSTALL_PREFIX=${INSTALL_PREFIX}"
+export CMAKE_PREFIX_PATH=${INSTALL_PREFIX}
+export C_INCLUDE_PATH=${INSTALL_PREFIX}/include
+export CPLUS_INCLUDE_PATH=${INSTALL_PREFIX}/include
 export LIBRARY_PATH=${INSTALL_PREFIX}/lib:${INSTALL_PREFIX}/lib64
 export LD_LIBRARY_PATH=${LIBRARY_PATH}
 
 cd ${WORKPATH}
-git clone https://github.com/mpmilano/mutils-containers.git
-cd mutils-containers
-# Since there's no version tag or branch we can target, check out a particular commit
-# to avoid unexpected changes if there are new commits to master
-git checkout e3dd51fdb6dcbe42532250b5d670b3e0f74f015c
+git clone https://github.com/mpmilano/mutils-tasks.git
+cd mutils-tasks
+# git checkout e9584168390eb3fac438a443f3bb93ed692e972a
+# git checkout 680d456141f4b6e29f6ede04e9e7b56763053976
+git checkout 006dbc87b96ae8de172dde56d06e9f5883bf6851
 mkdir build
 cd build
 cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX} ..
 make -j `lscpu | grep "^CPU(" | awk '{print $2}'`
 make install
-rm -rf ${WORKPATH}
