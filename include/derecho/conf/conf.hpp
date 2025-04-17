@@ -66,8 +66,6 @@ public:
 // #define CONF_PERS_MAX_LOG_ENTRY "PERS/max_log_entry"
 // #define CONF_PERS_MAX_DATA_SIZE "PERS/max_data_size"
 // #define CONF_PERS_PRIVATE_KEY_FILE "PERS/private_key_file"
-// #define CONF_INFO_SST_LOAD_INFO_MULTICAST_RATE "INFOSST/sst_load_info_multicast_rate"
-// #define CONF_INFO_SST_CACHE_INFO_MULTICAST_RATE "INFOSST/sst_cache_info_multicast_rate"
 // #define CONF_LOGGER_DEFAULT_LOG_NAME "LOGGER/default_log_name"
 // #define CONF_LOGGER_DEFAULT_LOG_LEVEL "LOGGER/default_log_level"
 // #define CONF_LOGGER_LOG_TO_TERMINAL "LOGGER/log_to_terminal"
@@ -94,6 +92,9 @@ public:
 
     static constexpr const char* LAYOUT_JSON_LAYOUT = "LAYOUT/json_layout";
     static constexpr const char* LAYOUT_JSON_LAYOUT_FILE = "LAYOUT/json_layout_file";
+
+    static constexpr const char* CONF_INFO_SST_LOAD_INFO_MULTICAST_RATE "INFOSST/sst_load_info_multicast_rate"
+    static constexpr const char* CONF_INFO_SST_CACHE_INFO_MULTICAST_RATE "INFOSST/sst_cache_info_multicast_rate"
 
 private:
     // Configuration Table:
